@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+        font-family: sans-serif;
+        padding: 20px;
+        margin: 0;
+        background: #f0f0f0;
+        
+    }
+    .container {
+        max-width: 360px;
+        margin: 0 auto;
+    }
+    .header {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .header h1 {
+        font-size: 18px;
+        margin: 0 0 16px 0;
+        color: #1e1e1e;
+    }
+
+    .header p{
+        text-align: center;
+    }
+    .flow-editor {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .input-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+
+    .flow-steps {
+        margin-bottom: 20px;
+        padding: 10px;
+        background: #f8f8f8;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .flow-step {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+    .flow-step .remove {
+        color: #ff3b30;
+        cursor: pointer;
+        padding: 4px 8px;
+    }
+    button {
+        background: #1508be;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        width: 100%;
+    }
+    button:hover {
+        background: #3527f7;
+    }
+    .add-step {
+        background: #1508be;
+        width: auto;
+        white-space: nowrap;
+    }
+    .clear-steps {
+        background: #ee433a;
+        margin-bottom: 10px;
+    }
+
+    .clear-steps:hover{
+        background-color: #ec3329;
+    }
+    .button-group {
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+        <h1>✨UserFlow Generator</h1>
+        <p style="margin: 0; color: #666; font-size: 14px">
+            Add multiple flow steps and generate a user flow diagram
+        </p>
+    </div>
+
+    <div class="flow-editor">
+        <div class="input-group">
+            <input type="text" id="flowInput" placeholder="Enter flow step" />
+            <button class="add-step" id="addStep">Add Flow</button>
+        </div>
+
+        <div class="flow-steps" id="flowSteps">
+            <!-- Added steps will appear here -->
+        </div>
+
+        <div class="button-group">
+            <button class="clear-steps" id="clearSteps">Clear All Steps</button>
+            <button id="generate">Generate User Flow</button>
+            <!-- <button id="close" style="background: #8e8e93">Close Plugin</button> -->
+        </div>
+        </div>
+    </div>
+
+    <script>
+        let steps = [];
+        const flowInput = document.getElementById("flowInput");
+        const flowSteps = document.getElementById("flowSteps");
+
+    function updateStepsList() {
+        flowSteps.innerHTML = steps
+        .map(
+            (step, index) => `
+        <div class="flow-step">
+            <span>${index + 1}. ${step}</span>
+            <span class="remove" onclick="removeStep(${index})">×</span>
+        </div>
+    `
+        )
+        .join("");
+    }
+
+    function removeStep(index) {
+        steps.splice(index, 1);
+        updateStepsList();
+    }
+
+    document.getElementById("addStep").onclick = () => {
+        const step = flowInput.value.trim();
+        if (step) {
+            steps.push(step);
+            updateStepsList();
+            flowInput.value = "";
+            flowInput.focus();
+        }
+    };
+
+    document.getElementById("clearSteps").onclick = () => {
+        steps = [];
+        updateStepsList();
+        flowInput.focus();
+    };
+
+    document.getElementById("generate").onclick = () => {
+        if (steps.length < 2) {
+            alert("Please add at least 2 flow steps");
+            return;
+        }
+
+        parent.postMessage(
+        {
+            pluginMessage: {
+                type: "generate-flow",
+                steps: steps,
+            },
+        },
+            "*"
+        );
+    };
+
+    document.getElementById("close").onclick = () => {
+        parent.postMessage(
+            {
+            pluginMessage: {
+                type: "close-plugin",
+            },
+        },
+        "*"
+        );
+    };
+
+      // Enter key to add step
+    flowInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            document.getElementById("addStep").click();
+        }
+    });
+    </script>
+</body>
+</html>
